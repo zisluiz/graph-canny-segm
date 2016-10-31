@@ -1,4 +1,4 @@
-##Graph-based Object Segmentation for RGB-D images
+## Fast Graph-Based Object Segmentation for RGB-D Images
 
 CPU code for paper:
 Fast Graph-Based Object Segmentation for RGB-D Images, Giorgio Toscana, Stefano Rosa
