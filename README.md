@@ -10,6 +10,8 @@ https://arxiv.org/abs/1605.03746
 Dependencies:
 sudo apt-get install libopencv-dev libboost-system-dev
 
+--
+
 Compile: make
 
 Run: ./main rgb_file_name depth_file_name
