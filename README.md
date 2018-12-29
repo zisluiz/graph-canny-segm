@@ -21,7 +21,7 @@ Run: ./main ./images/000310001400101.jpg ./images/000310001400103.png
 Run: ./main ./images/rgb_01539.png ./images/depth_01539.png
 Run: ./main ./images/stanley_66_052-image-K-2-1-0.png ./images/stanley_66_052-depth-K-2-1-0.png
 
-Tested on Ubuntu 14.10 and 16.04 64bit, MacOS X 10.10
+Tested on Ubuntu 18.04 64bit
 
 
 
