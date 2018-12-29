@@ -12,11 +12,9 @@
 #include <cstring>
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-
+#include <opencv2/imgcodecs/imgcodecs.hpp>
 #include "opencv2/highgui/highgui.hpp"
-
-#include <opencv2/contrib/contrib.hpp>//for cv::applyColorMap
-#include <opencv2/photo/photo.hpp>//for inpaintDepth
+#include "opencv2/photo.hpp" //for inpaintDepth
 
 #include <cstdlib>
 #include <cmath>
@@ -40,6 +38,7 @@
 #endif
 
 using namespace std;
+using namespace cv;
 //typedef unsigned char uchar;
 
 //typedef signed char schar;
@@ -57,8 +56,6 @@ struct edge{
     edge();
     edge(int a, int b, float w_);
 };
-
-
 
 struct rgb{
     
@@ -79,7 +76,6 @@ struct hsv{
     hsv& operator=(const hsv& other);
     
 };
-
 
 struct CIELab{
     
@@ -703,7 +699,7 @@ public:
             printf("Opencv RGB Image\n");
             //        cv::imwrite("/Users/giorgio/Documents/Polito/PhD/Slides/PresentazionePhDfineAnno/rgbAPK.jpg", m);
             cv::Mat m_rgb;
-            cv::cvtColor(m, m_rgb, CV_BGR2RGB);
+            cv::cvtColor(m, m_rgb, cv::COLOR_BGR2RGB);
             uchar* m_rgbPtr = m_rgb.ptr();
             image<Q> *im = new image<Q>(width, height);
             memcpy(im->data, m_rgbPtr, width * height * sizeof(Q));
@@ -717,7 +713,7 @@ public:
             //Size(5,5) is obtained from sigma 0.8=> ceil(0.8*4)+1;
             //cv::GaussianBlur(m, m, cv::Size(5,5), sigma_);
             cv::Mat m_hsv;
-            cv::cvtColor(m, m_hsv, CV_BGR2HSV);
+            cv::cvtColor(m, m_hsv, cv::COLOR_BGR2HSV);
             uchar* m_hsvPtr = m_hsv.ptr();
             image<Q> *im = new image<Q>(width, height);
             memcpy(im->data, m_hsvPtr, width * height * sizeof(Q));
@@ -734,7 +730,7 @@ public:
             cv::Mat_<cv::Vec3f> m_cielab;
             cv::Mat_<cv::Vec3f> mfloat;
             m.convertTo( mfloat, CV_32FC3, 1.0f/255.0f);
-            cv::cvtColor(mfloat, m_cielab, CV_BGR2Lab);
+            cv::cvtColor(mfloat, m_cielab, cv::COLOR_BGR2Lab);
             float* m_cielabPtr = m_cielab.ptr<float>(0);
             image<Q> *im = new image<Q>(width, height);
             memcpy(im->data, m_cielabPtr, width * height * sizeof(Q));
@@ -786,7 +782,7 @@ public:
         {
             cv::Mat seg = cv::Mat(im->height(),im->width(),CV_8UC3,im->data);
             cv::Mat seg_bgr;
-            cv::cvtColor(seg, seg_bgr, CV_RGB2BGR);
+            cv::cvtColor(seg, seg_bgr, cv::COLOR_RGB2BGR);
             cv::imshow(win_name, seg_bgr);
             cv::waitKey(wait_key_);
         }
@@ -912,7 +908,7 @@ public:
         cv::Mat Cmatnot;
         cv::bitwise_not(Cmat, Cmatnot);
         cv::Mat Tmat_;
-        cv::distanceTransform(Cmatnot, Tmat_, CV_DIST_L2, CV_DIST_MASK_PRECISE);
+        cv::distanceTransform(Cmatnot, Tmat_, cv::DIST_L2, cv::DIST_MASK_PRECISE);
         Tmat_ = Tmat_*M_SQRT1_2; //Tmat_./sqrt(2);
         //visualizeColorMap(Tmat_,"Tsqrt",5,true);
         
@@ -2641,14 +2637,14 @@ public:
         // Here we lengthen the arrow by a factor of scale
         q.x = (int) (p.x - scale * hypotenuse * cos(angle));
         q.y = (int) (p.y - scale * hypotenuse * sin(angle));
-        cv::line(img, p, q, colour, 1, CV_AA);
+        cv::line(img, p, q, colour, 1, cv::LINE_AA);
         // create the arrow hooks
         p.x = (int) (q.x + 9 * cos(angle + CV_PI / 4));
         p.y = (int) (q.y + 9 * sin(angle + CV_PI / 4));
-        cv::line(img, p, q, colour, 1, CV_AA);
+        cv::line(img, p, q, colour, 1, cv::LINE_AA);
         p.x = (int) (q.x + 9 * cos(angle - CV_PI / 4));
         p.y = (int) (q.y + 9 * sin(angle - CV_PI / 4));
-        cv::line(img, p, q, colour, 1, CV_AA);
+        cv::line(img, p, q, colour, 1, cv::LINE_AA);
     }
     
     void inline computeValueHist(const cv::Mat& image, bool isHSV, const cv::Mat& mask, cv::Mat_<float>& Val_HistNorm, cv::Mat& histImage,int clusterArea,int Hbins=256, bool viz_=true )
@@ -2658,7 +2654,7 @@ public:
         if(!isHSV)
         {
             //Conversione RBG -> HSV
-            cv::cvtColor(image, hsv_mat, CV_BGR2HSV);
+            cv::cvtColor(image, hsv_mat, cv::COLOR_BGR2HSV);
         }
         else
         {
@@ -2758,7 +2754,7 @@ public:
         if(!isHSV)
         {
             //Conversione RBG -> HS
-            cv::cvtColor(image, hsv_mat, CV_BGR2HSV);
+            cv::cvtColor(image, hsv_mat, cv::COLOR_BGR2HSV);
         }
         else
         {
@@ -2809,7 +2805,7 @@ public:
         cv::Mat hsv_mat;
         if(!isHSV)
         {
-            cv::cvtColor(image, hsv_mat, CV_BGR2HSV);
+            cv::cvtColor(image, hsv_mat, cv::COLOR_BGR2HSV);
         }
         else
         {

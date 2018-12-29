@@ -11,10 +11,11 @@
 #include <cmath>
 
 #include <boost/thread.hpp>
-#include <assimp/config.h>
-#include <assimp/mesh.h>
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include "opencv2/highgui/highgui.hpp"
 
 
 #include "GraphCannySeg.h"
@@ -114,7 +115,7 @@ cv::Mat loadDepth( std::string a_name )
     l_file.read((char*)&l_row,sizeof(l_row));
     l_file.read((char*)&l_col,sizeof(l_col));
 
-    IplImage * lp_image = cvCreateImage(cvSize(l_col,l_row),IPL_DEPTH_16U,1);
+    /*IplImage * lp_image = cvCreateImage(cvSize(l_col,l_row),IPL_DEPTH_16U,1);
 
     for(int l_r=0;l_r<l_row;++l_r)
     {
@@ -126,7 +127,11 @@ cv::Mat loadDepth( std::string a_name )
     l_file.close();
 
     lp_mat= cv::Mat(lp_image);
-    return lp_mat;
+    return lp_mat;*/
+
+     printf("######################### Entrou loadDepth!\n");
+
+    return cv::Mat(cv::Size(l_col,l_row),CV_16UC1);
 }
 
 
@@ -195,6 +200,9 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
 
     cv::imshow("kinect_rgb_img",kinect_rgb_img);
     cv::imshow("kinect_depth_img_mm",kinect_depth_img_mm);
+
+    printf("######################### Exibiu rgb e depth!\n");
+
     for(int i=250;i<350;i++)
         for(int j=200;j<250;j++)
             printf("%d ",kinect_depth_img_mm.at<uint16_t>(j,i));

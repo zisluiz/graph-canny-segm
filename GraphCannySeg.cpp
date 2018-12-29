@@ -147,7 +147,7 @@ namespace GraphCanny {
             //load the RGB image
             //printf("Opencv RGB Image\n");
             cv::Mat m_rgb;
-            cv::cvtColor(m, m_rgb, CV_BGR2RGB);
+            cv::cvtColor(m, m_rgb, cv::COLOR_BGR2RGB);
             uchar* m_rgbPtr = m_rgb.ptr();
             image<T> *im = new image<T>(width, height);
             memcpy(im->data, m_rgbPtr, width * height * sizeof(T));
@@ -158,7 +158,7 @@ namespace GraphCanny {
             //Load the HSV image
             //printf("Opencv HSV Image\n");
             cv::Mat m_hsv;
-            cv::cvtColor(m, m_hsv, CV_BGR2HSV);
+            cv::cvtColor(m, m_hsv, cv::COLOR_BGR2HSV);
             uchar* m_hsvPtr = m_hsv.ptr();
             image<T> *im = new image<T>(width, height);
             memcpy(im->data, m_hsvPtr, width * height * sizeof(T));
@@ -192,7 +192,7 @@ namespace GraphCanny {
             //load the RGB image
             //printf("Opencv RGB Image\n");
             cv::Mat m_rgb;
-            cv::cvtColor(m, m_rgb, CV_BGR2RGB);
+            cv::cvtColor(m, m_rgb, cv::COLOR_BGR2RGB);
             uchar* m_rgbPtr = m_rgb.ptr();
             //image<T> *im = new image<T>(width, height);
             memcpy(this->data, m_rgbPtr, width * height * sizeof(T));
@@ -203,7 +203,7 @@ namespace GraphCanny {
             //Load the HSV image
             //printf("Opencv HSV Image\n");
             cv::Mat m_hsv;
-            cv::cvtColor(m, m_hsv, CV_BGR2HSV);
+            cv::cvtColor(m, m_hsv, cv::COLOR_BGR2HSV);
             uchar* m_hsvPtr = m_hsv.ptr();
             //image<T> *im = new image<T>(width, height);
             memcpy(this->data, m_hsvPtr, width * height * sizeof(T));
@@ -407,7 +407,7 @@ namespace GraphCanny {
         mSmoothedDepth = new image<uint16_t>(mInput_depth->width(),mInput_depth->height(),false);
         mInpaintedDepth = new image<uint16_t>(mInput_depth->width(),mInput_depth->height(),false);
         //Convert to Gray img
-        cv::cvtColor(rgb_img, mcvGray_img, CV_BGR2GRAY);
+        cv::cvtColor(rgb_img, mcvGray_img, cv::COLOR_BGR2GRAY);
         
         //        float k_vec[9] = {571.9737, 0, 319.5000, 0, 571.0073, 239.5000, 0,0,1};
         cv::Mat_<float> K_ = cv::Mat_<float>(3,3,&k_vec[0]);
@@ -516,7 +516,7 @@ namespace GraphCanny {
         cv::Mat Cmatnot;
         cv::bitwise_not(Cmat, Cmatnot);
         cv::Mat Tmat_;
-        cv::distanceTransform(Cmatnot, Tmat_, CV_DIST_L2, CV_DIST_MASK_PRECISE);
+        cv::distanceTransform(Cmatnot, Tmat_, cv::DIST_L2, cv::DIST_MASK_PRECISE);
         Tmat_ = Tmat_*M_SQRT1_2; //Tmat_./sqrt(2);
         //visualizeColorMap(Tmat_,"Tsqrt",5,true);
         
@@ -1395,7 +1395,7 @@ namespace GraphCanny {
             data_pts.at<double>(i, 1) = (double)pts[i].y;
         }
         //Perform PCA analysis
-        cv::PCA pca_analysis(data_pts, cv::Mat(), CV_PCA_DATA_AS_ROW);
+        cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW);
         //Store the center of the object
         cntr = cv::Point(static_cast<int>(pca_analysis.mean.at<double>(0, 0)),
                          static_cast<int>(pca_analysis.mean.at<double>(0, 1)));
