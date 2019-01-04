@@ -97,6 +97,8 @@ std::vector<GraphCanny::SegResults> vecSegResult;
 cv::Mat kinect_rgb_img;
 cv::Mat kinect_depth_img_mm;
 
+bool debug = false;
+bool showImages = false;
 
 // for loading ACCV dataset
 cv::Mat loadDepth( std::string a_name )
@@ -150,41 +152,47 @@ void on_trackbar( int, void* )
     float lcannyf = (float)Lcanny/1000.f;
     float hcannyf = (float)Hcanny/1000.f;
     //GraphCanny::GraphCannySeg<GraphCanny::hsv> gcs(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);
+
     gcs = new GraphCanny::GraphCannySeg<GraphCanny::hsv>(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);
+    gcs->debug = debug;
+    gcs->showImages = showImages;    
     gcs->run();
 
-    vecSegResult = gcs->vecSegResults;
+    //vecSegResult = gcs->vecSegResults;
+    if (showImages) {
+        //text.zeros(480, 640,CV_8UC1);
+        cv::Mat text = cv::Mat::zeros(230, 640,CV_8UC1);
+        char text_[200]={};
+        sprintf(text_, "DTH: %d plusD: %d point3D: %d",DTH,plusD,point3D);
+        std::string tstring(text_);
+        std::cout<<tstring<<"\n";
+        cv::putText(text, tstring, cv::Point(50,50), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
 
-    //text.zeros(480, 640,CV_8UC1);
-    cv::Mat text = cv::Mat::zeros(230, 640,CV_8UC1);
-    char text_[200]={};
-    sprintf(text_, "DTH: %d plusD: %d point3D: %d",DTH,plusD,point3D);
-    std::string tstring(text_);
-    std::cout<<tstring<<"\n";
-    cv::putText(text, tstring, cv::Point(50,50), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
+        sprintf(text_, "K: %f Kx: %.2f Ky: %f Ks: %f",kfloat,kxfloat,kyfloat,ksfloat);
+        tstring = std::string(text_);
+        std::cout<<tstring<<"\n";
+        cv::putText(text, tstring, cv::Point(50,100), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
 
-    sprintf(text_, "K: %f Kx: %.2f Ky: %f Ks: %f",kfloat,kxfloat,kyfloat,ksfloat);
-    tstring = std::string(text_);
-    std::cout<<tstring<<"\n";
-    cv::putText(text, tstring, cv::Point(50,100), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
+        sprintf(text_, "G_angle: %d  L_angle: %d  Zmax: %d",g_angle,l_angle, FarObjZ);
+        tstring = std::string(text_);
+        std::cout<<tstring<<"\n";
+        cv::putText(text, tstring, cv::Point(50,150), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
 
-    sprintf(text_, "G_angle: %d  L_angle: %d  Zmax: %d",g_angle,l_angle, FarObjZ);
-    tstring = std::string(text_);
-    std::cout<<tstring<<"\n";
-    cv::putText(text, tstring, cv::Point(50,150), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
+        sprintf(text_, "Low Canny : %f  High Canny: %f",lcannyf,hcannyf);
+        tstring = std::string(text_);
+        std::cout<<tstring<<"\n";
+        cv::putText(text, tstring, cv::Point(50,200), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
 
-    sprintf(text_, "Low Canny : %f  High Canny: %f",lcannyf,hcannyf);
-    tstring = std::string(text_);
-    std::cout<<tstring<<"\n";
-    cv::putText(text, tstring, cv::Point(50,200), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255));
-
-    cv::imshow( trackBarsWin, text );
-    cv::waitKey(5);
-
+        cv::imshow( trackBarsWin, text );
+        cv::waitKey(5);
+    }
 }
 
-void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_file_path)
+void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_file_path, std::string _debug, std::string _showImages)
 {
+    debug = _debug == "true";
+    showImages = _showImages == "true";
+
     /* Load the RGB and DEPTH */
 
 
@@ -198,41 +206,40 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
     kinect_rgb_img = cv::imread(rgb_file_path);//,cv::IMREAD_UNCHANGED);
     kinect_depth_img_mm = cv::imread(depth_file_path,cv::IMREAD_UNCHANGED);// in mm
 
-    cv::imshow("kinect_rgb_img",kinect_rgb_img);
-    cv::imshow("kinect_depth_img_mm",kinect_depth_img_mm);
+    //cv::imshow("kinect_rgb_img",kinect_rgb_img);
+    //cv::imshow("kinect_depth_img_mm",kinect_depth_img_mm);
 
-    printf("######################### Exibiu rgb e depth!\n");
+    if (debug) {
+        for(int i=250;i<350;i++)
+                for(int j=200;j<250;j++)
+                    printf("%d ",kinect_depth_img_mm.at<uint16_t>(j,i));
+    }
+ 
+    if (showImages) {
+        /*Create the TrackBars for Segmentation Params*/
+        cv::namedWindow(trackBarsWin,0);
 
-    for(int i=250;i<350;i++)
-        for(int j=200;j<250;j++)
-            printf("%d ",kinect_depth_img_mm.at<uint16_t>(j,i));
-    //cv::imwrite("/Users/morpheus/Dropbox/segment/depth35.png" );
-    /*Create the TrackBars for Segmentation Params*/
-    cv::namedWindow(trackBarsWin,0);
-
-    cv::createTrackbar("k", trackBarsWin, &k, 1000,on_trackbar);
-    cv::createTrackbar("kx", trackBarsWin, &kx, 10000,on_trackbar);
-    cv::createTrackbar("ky", trackBarsWin, &ky, 1000,on_trackbar);
-    cv::createTrackbar("ks", trackBarsWin, &ks, 1000,on_trackbar);
-    cv::createTrackbar("DTH", trackBarsWin, &DTH, 100,on_trackbar);
-    cv::createTrackbar("plusD", trackBarsWin, &plusD, 100,on_trackbar);
-    cv::createTrackbar("Point3D", trackBarsWin, &point3D, 100,on_trackbar);
-    cv::createTrackbar("G Angle", trackBarsWin, &g_angle, 180,on_trackbar);
-    cv::createTrackbar("L Angle", trackBarsWin, &l_angle, 180,on_trackbar);
-    cv::createTrackbar("H Canny th", trackBarsWin, &Hcanny, 100,on_trackbar);
-    cv::createTrackbar("L Canny th", trackBarsWin, &Lcanny, 100,on_trackbar);
-    cv::createTrackbar("FarObjZ", trackBarsWin, &FarObjZ, 2500,on_trackbar);
+        cv::createTrackbar("k", trackBarsWin, &k, 1000,on_trackbar);
+        cv::createTrackbar("kx", trackBarsWin, &kx, 10000,on_trackbar);
+        cv::createTrackbar("ky", trackBarsWin, &ky, 1000,on_trackbar);
+        cv::createTrackbar("ks", trackBarsWin, &ks, 1000,on_trackbar);
+        cv::createTrackbar("DTH", trackBarsWin, &DTH, 100,on_trackbar);
+        cv::createTrackbar("plusD", trackBarsWin, &plusD, 100,on_trackbar);
+        cv::createTrackbar("Point3D", trackBarsWin, &point3D, 100,on_trackbar);
+        cv::createTrackbar("G Angle", trackBarsWin, &g_angle, 180,on_trackbar);
+        cv::createTrackbar("L Angle", trackBarsWin, &l_angle, 180,on_trackbar);
+        cv::createTrackbar("H Canny th", trackBarsWin, &Hcanny, 100,on_trackbar);
+        cv::createTrackbar("L Canny th", trackBarsWin, &Lcanny, 100,on_trackbar);
+        cv::createTrackbar("FarObjZ", trackBarsWin, &FarObjZ, 2500,on_trackbar);
+    }
 
     on_trackbar( 0, 0 );
 
-    /// Wait until user press some key
-    cv::waitKey(0);
-
+    if (showImages) {
+        /// Wait until user press some key
+        cv::waitKey(0);
+    }
 }
-
-
-
-
 
 inline float min3(const float &a, const float &b, const float &c)
 { return std::min(a, std::min(b, c)); }
@@ -266,14 +273,14 @@ inline void printVector(const float* w, int size)
 
 int main( int argc, char *argv[] )
 {
-    if (argc != 3) {
+    if (argc != 5) {
 
         printf("usage: %s rgb_file_path depth_file_path\n",argv[0]);
 
         return -1;
     }
 
-    initTrackbarsSegmentation(argv[1], argv[2]);
+    initTrackbarsSegmentation(argv[1], argv[2], argv[3], argv[4]);
 
     delete gcs;
 

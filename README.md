@@ -16,7 +16,7 @@ Compile: make
 
 Run: ./main rgb_file_name depth_file_name
 
-Run: ./main ./images/00490-color.png ./images/00490-depth.png
+Run: ./main ./images/00490-color.png ./images/00490-depth.png true true
 Run: ./main ./images/000310001400101.jpg ./images/000310001400103.png
 Run: ./main ./images/rgb_01539.png ./images/depth_01539.png
 Run: ./main ./images/stanley_66_052-image-K-2-1-0.png ./images/stanley_66_052-depth-K-2-1-0.png

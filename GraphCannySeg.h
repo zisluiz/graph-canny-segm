@@ -617,6 +617,9 @@ struct SegResults {
 template <class T>
 class GraphCannySeg {
 public:
+    static bool showImages;
+    static bool debug; 
+
     float mSigma;
     float mK;//range da 0.003 a 0.001 x Shampoo //0.0031
     int mMin_size;
@@ -680,7 +683,6 @@ public:
     // added by STE
 //    cv::Mat rgbimg;
 //    cv::Mat depthimg;
-    
 public:
     
     GraphCannySeg();
@@ -778,6 +780,11 @@ public:
     template <class Q>
     static inline void visualizeImage(image<Q> *im, std::string win_name="Segmentation Result", int wait_key_=0, bool bInpaintDepth=false)
     {
+        if (!showImages) {
+            printf("Não vai mostrar imagem, showImages: %s\n", showImages ? "true" : "false");
+            return;
+        }
+
         if(typeid(Q)==typeid(rgb) )
         {
             cv::Mat seg = cv::Mat(im->height(),im->width(),CV_8UC3,im->data);
