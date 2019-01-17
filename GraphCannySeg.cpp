@@ -375,6 +375,11 @@ namespace GraphCanny {
         clusterDepth_.copyTo(clusterDepth);
         rect_aabb_ = rect_aabb;
     }
+
+    template <class T>
+    bool GraphCannySeg<T>::showImages = false;
+    template <class T>
+    bool GraphCannySeg<T>::showDebug = false;     
     
     //GRAPH SEG
     template <class T>
@@ -946,7 +951,7 @@ namespace GraphCanny {
                     float theta;//in rad
                     angle3Points(p1, p0, p2, theta);
                     
-                    if(j==216 && i==259)
+                    if(j==216 && i==259 && showDebug)
                     {
                         printf("j: %d; i: %d; dp2: %d; dm2: %d; theta: %f\n",j,i,dp2,dm2,theta*180.f/M_PI);
                     }
@@ -1038,7 +1043,8 @@ namespace GraphCanny {
         mMagOut.convertTo(mSaliencyMyCanny,CV_32F,1.0/(maxVal - minVal), -minVal*1.0/(maxVal-minVal));
         
         cv::minMaxIdx(mSaliencyMyCanny, &minVal, &maxVal);
-        printf("SaliencyMyCanny Float min: %f; max: %f\n",minVal,maxVal);
+        if (showDebug)
+            printf("SaliencyMyCanny Float min: %f; max: %f\n",minVal,maxVal);
         mSaliencyMyCannyPtr = mSaliencyMyCanny.ptr<float>(0);
         
         //    double minVal, maxVal;
@@ -1056,17 +1062,18 @@ namespace GraphCanny {
     }
     
     template <class T>
-    image<rgb>* GraphCannySeg<T>::segment_image() {
+    void GraphCannySeg<T>::segment_image() {
         
         //test if HSV class
         //TODO: Implement segmentation for RGB & CIELab
         if(mClass_type==HSV)
         {
-            
-            if(mSaliencyMyCannyPtr)
-                printf("***Segmenting HSV + DEPTH + SALIENCY***\n");
-            else
-                printf("***Segmenting HSV + DEPTH***\n");
+            if (showDebug) {
+                if(mSaliencyMyCannyPtr)
+                    printf("***Segmenting HSV + DEPTH + SALIENCY***\n");
+                else
+                    printf("***Segmenting HSV + DEPTH***\n");
+            }
             
             //            int width = im->width();
             //            int height = im->height();
@@ -1115,10 +1122,11 @@ namespace GraphCanny {
             *std::min_element(imPtr(mInpaintedDepth, 0, 0),
                               imPtr(mInpaintedDepth, mWidth-1, mHeight-1));
             
-            printf("Max Depth Value: %d [mm]\n",max_depth_val);
-            //min value is 0 for sure so: Not So sure now... :)
-            printf("Min Depth Value: %d [mm]\n",min_depth_val);
-            
+            if (showDebug) {
+                printf("Max Depth Value: %d [mm]\n",max_depth_val);
+                //min value is 0 for sure so: Not So sure now... :)
+                printf("Min Depth Value: %d [mm]\n",min_depth_val);
+            }
             
             image<float> *depth_mm_norm = new image<float>(mWidth, mHeight);
             for(size_t idx=0;idx<depth_mm_norm->WxH();++idx)
@@ -1232,14 +1240,15 @@ namespace GraphCanny {
             cv::minMaxLoc(Wtotal,&minVal,&maxVal);
             
             
-            float minWdRGB = *std::min_element(DrgbV.begin(), DrgbV.end());
-            float maxWdRGB = *std::max_element(DrgbV.begin(), DrgbV.end());
-            printf("minWdHSV: %f; maxWdHSV: %f\n",minWdRGB,maxWdRGB);
-            
-            float minWdDepth = *std::min_element(DdepthV.begin(), DdepthV.end());
-            float maxWdDepth = *std::max_element(DdepthV.begin(), DdepthV.end());
-            printf("minWdDepth: %f; maxWdDepth: %f\n",minWdDepth,maxWdDepth);
-            
+            if (showDebug) {
+                float minWdRGB = *std::min_element(DrgbV.begin(), DrgbV.end());
+                float maxWdRGB = *std::max_element(DrgbV.begin(), DrgbV.end());
+                printf("minWdHSV: %f; maxWdHSV: %f\n",minWdRGB,maxWdRGB);
+                
+                float minWdDepth = *std::min_element(DdepthV.begin(), DdepthV.end());
+                float maxWdDepth = *std::max_element(DdepthV.begin(), DdepthV.end());
+                printf("minWdDepth: %f; maxWdDepth: %f\n",minWdDepth,maxWdDepth);
+            }    
             
             // segment
             universe *u = segment_graph(mRxC, num, edges);//c);
@@ -1263,6 +1272,7 @@ namespace GraphCanny {
             
             //pick random colors for each component
             rgb *colors = new rgb[mRxC];
+            printf("Número de componentes: %d\n", mRxC);
             for (int i = 0; i < mRxC; i++)
                 colors[i] = random_rgb();
             
@@ -1275,7 +1285,8 @@ namespace GraphCanny {
                 }
             }
             
-            printf("got %d components\n", mNumClustersFounds);
+            if (showDebug)
+                printf("got %d components\n", mNumClustersFounds);
             //visualizeImage(output,"Seg Res",0);
             
             
@@ -1292,13 +1303,14 @@ namespace GraphCanny {
              */
             PostSegmFilter(u);
             
-            
-            
+            visualizeImage(output,"Seg Res",5);        
             
             delete [] colors;
             delete depth_mm_norm;
             delete u;
-            return output;
+            delete output;
+            //return output;
+            return;
         }//end if test HSV class
         std::cout<<"CIELAB and RGB not Handled yet...only HSV\n";
         exit(EXIT_FAILURE);//return 0;
@@ -1455,15 +1467,15 @@ namespace GraphCanny {
         //My Canny and Blur the result if true, generate the float* pointer SaliencyMyCannyPtr used by segment_image
         //0.05f, 0.075f
         myCannyWithOri2(mLcannyTH,mHcannyTH, mImageMask,true);
-        cv::imshow("MyCanny Gaussin Blur", mMagOut);
+
+        if (showImages)
+            cv::imshow("MyCanny Gaussin Blur", mMagOut);
+
         visualizeColorMap(mOriOut,"PHASE",5,false);
         
         //Segment & PCA filter
         /* HSV + DEPTH + SALIENCY */
-        image<rgb> *seg = segment_image();
-        
-        visualizeImage(seg,"Seg Res",5);
-        
+        segment_image();        
     }
     
 };//end namespace

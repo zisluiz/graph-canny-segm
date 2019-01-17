@@ -87,7 +87,7 @@ int g_angle = 154; //140;//148;//2.f/3.f*M_PI;
 int l_angle = 56; //M_PI/3.f;
 int Lcanny = 50;
 int Hcanny = 75;
-int FarObjZ = 1800; //875;//1800; //[mm]
+int FarObjZ = 28000; //875;//1800; //[mm]
 
 std::string trackBarsWin = "Trackbars";
 //Segmentation Results
@@ -97,7 +97,7 @@ std::vector<GraphCanny::SegResults> vecSegResult;
 cv::Mat kinect_rgb_img;
 cv::Mat kinect_depth_img_mm;
 
-bool debug = false;
+bool showDebug = false;
 bool showImages = false;
 
 // for loading ACCV dataset
@@ -153,16 +153,17 @@ void on_trackbar( int, void* )
     float hcannyf = (float)Hcanny/1000.f;
     //GraphCanny::GraphCannySeg<GraphCanny::hsv> gcs(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);
 
-    gcs = new GraphCanny::GraphCannySeg<GraphCanny::hsv>(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);
-    gcs->debug = debug;
+    gcs = new GraphCanny::GraphCannySeg<GraphCanny::hsv>(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);    
     gcs->showImages = showImages;    
+    gcs->showDebug = showDebug;
     gcs->run();
 
-    //vecSegResult = gcs->vecSegResults;
+    vecSegResult = gcs->vecSegResults;
+    
     if (showImages) {
         //text.zeros(480, 640,CV_8UC1);
         cv::Mat text = cv::Mat::zeros(230, 640,CV_8UC1);
-        char text_[200]={};
+        char text_[200]={};        
         sprintf(text_, "DTH: %d plusD: %d point3D: %d",DTH,plusD,point3D);
         std::string tstring(text_);
         std::cout<<tstring<<"\n";
@@ -188,9 +189,9 @@ void on_trackbar( int, void* )
     }
 }
 
-void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_file_path, std::string _debug, std::string _showImages)
+void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_file_path, std::string _showDebug, std::string _showImages)
 {
-    debug = _debug == "true";
+    showDebug = _showDebug == "true";
     showImages = _showImages == "true";
 
     /* Load the RGB and DEPTH */
@@ -209,7 +210,7 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
     //cv::imshow("kinect_rgb_img",kinect_rgb_img);
     //cv::imshow("kinect_depth_img_mm",kinect_depth_img_mm);
 
-    if (debug) {
+    if (showDebug) {
         for(int i=250;i<350;i++)
                 for(int j=200;j<250;j++)
                     printf("%d ",kinect_depth_img_mm.at<uint16_t>(j,i));
@@ -230,7 +231,7 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
         cv::createTrackbar("L Angle", trackBarsWin, &l_angle, 180,on_trackbar);
         cv::createTrackbar("H Canny th", trackBarsWin, &Hcanny, 100,on_trackbar);
         cv::createTrackbar("L Canny th", trackBarsWin, &Lcanny, 100,on_trackbar);
-        cv::createTrackbar("FarObjZ", trackBarsWin, &FarObjZ, 2500,on_trackbar);
+        cv::createTrackbar("FarObjZ", trackBarsWin, &FarObjZ, 40000,on_trackbar);
     }
 
     on_trackbar( 0, 0 );
@@ -287,3 +288,70 @@ int main( int argc, char *argv[] )
     return 0;
 }
 
+std::string segmentImage(std::string _rgbFilePath, std::string _depthFilePath, bool _showDebug, bool _showImages) {
+    showDebug = _showDebug;
+    showImages = _showImages;
+
+    kinect_rgb_img = cv::imread(_rgbFilePath);//,cv::IMREAD_UNCHANGED);
+    kinect_depth_img_mm = cv::imread(_depthFilePath,cv::IMREAD_UNCHANGED);// in mm
+
+    float kfloat = (float)k/10000.f;
+    float kxfloat = (float)kx/1000.f;
+    float kyfloat = (float)ky/1000.f;
+    float ksfloat = (float)ks/1000.f;
+    float gafloat = ((float)g_angle)*deg2rad;
+    float lafloat = ((float)l_angle)*deg2rad;
+    float lcannyf = (float)Lcanny/1000.f;
+    float hcannyf = (float)Hcanny/1000.f;
+    //GraphCanny::GraphCannySeg<GraphCanny::hsv> gcs(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);
+
+    gcs = new GraphCanny::GraphCannySeg<GraphCanny::hsv>(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);    
+    gcs->showImages = showImages;    
+    gcs->showDebug = showDebug;
+    gcs->run();
+
+    vecSegResult = gcs->vecSegResults;    
+
+    std::string jsonReturn = "[";
+
+    for(std::size_t objs=0; objs<vecSegResult.size(); ++objs) {
+        GraphCanny::SegResults obj = vecSegResult[objs];
+
+        jsonReturn.append("{");
+        jsonReturn.append("points: [");
+
+        for(std::size_t pixel=0; pixel < obj.pxs.size(); ++pixel) {
+            cv::Point3i point = obj.pxs[pixel]; 
+            jsonReturn.append("{");
+            jsonReturn.append(" x: "+std::to_string(point.x));
+            jsonReturn.append(" y: "+std::to_string(point.y));
+            jsonReturn.append(" z: "+std::to_string(point.z));
+            jsonReturn.append("}");
+
+            if (pixel < obj.pxs.size()-1)
+                jsonReturn.append(",");
+        }        
+
+        jsonReturn.append("]}");
+
+        if (objs<vecSegResult.size()-1)
+            jsonReturn.append(",");
+    }
+
+    jsonReturn.append("]");
+
+    printf("Preparing for print json format\n");
+
+    printf("JsonReturn: %s\n", jsonReturn.c_str());
+
+    return jsonReturn;    
+}
+
+#include <boost/python.hpp>
+
+using namespace boost::python;
+
+BOOST_PYTHON_MODULE(GraphCannySeg)
+{
+    def("segmentImage", segmentImage);
+}

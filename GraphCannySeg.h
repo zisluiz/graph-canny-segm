@@ -618,7 +618,7 @@ template <class T>
 class GraphCannySeg {
 public:
     static bool showImages;
-    static bool debug; 
+    static bool showDebug;   
 
     float mSigma;
     float mK;//range da 0.003 a 0.001 x Shampoo //0.0031
@@ -684,7 +684,6 @@ public:
 //    cv::Mat rgbimg;
 //    cv::Mat depthimg;
 public:
-    
     GraphCannySeg();
     
     GraphCannySeg(const cv::Mat& rgb_img, const cv::Mat_<uint16_t>& depth_img, float sigma_, float k_, float min_size, float kx_,float ky_, float ks_, float k_vec[9],float Lcannyth_=0.05f,float Hcannyth_=0.075f, float kdv_=4.5f, float kdc_=0.1f,float max_ecc=0.97f, float max_l1=2000.f, float max_l2=970.0f,uint16_t DTH = 30, uint16_t plusD = 5,
@@ -698,6 +697,7 @@ public:
         if(m.channels()==3 && typeid(Q)==typeid(rgb))//RGB
         {
             //load the RGB image
+            if (showDebug)
             printf("Opencv RGB Image\n");
             //        cv::imwrite("/Users/giorgio/Documents/Polito/PhD/Slides/PresentazionePhDfineAnno/rgbAPK.jpg", m);
             cv::Mat m_rgb;
@@ -710,7 +710,8 @@ public:
         else if(m.channels()==3 && typeid(Q)==typeid(hsv))
         {
             //Load the HSV image
-            printf("Opencv HSV Image\n");
+            if (showDebug)
+                printf("Opencv HSV Image\n");
             //Gaussina Bluer
             //Size(5,5) is obtained from sigma 0.8=> ceil(0.8*4)+1;
             //cv::GaussianBlur(m, m, cv::Size(5,5), sigma_);
@@ -725,7 +726,8 @@ public:
         else if(m.channels()==3 && typeid(Q)==typeid(CIELab))
         {
             //Load the CIELab image
-            printf("Opencv CIELab Image\n");
+            if (showDebug)
+                printf("Opencv CIELab Image\n");
             //Gaussina Bluer
             //Size(5,5) is obtained from sigma 0.8=> ceil(0.8*4)+1;
             //cv::GaussianBlur(m, m, cv::Size(5,5), sigma_);
@@ -738,9 +740,11 @@ public:
             memcpy(im->data, m_cielabPtr, width * height * sizeof(Q));
             CIELab min_,max_;
             min_max<CIELab>((image<CIELab> *)im,&min_,&max_);
-            printf("min: L %f; a %f; b %f\n",min_.L,min_.a,min_.b);
-            printf("max: L %f; a %f; b %f\n",max_.L,max_.a,max_.b);
-            
+            if (showDebug) {
+                printf("min: L %f; a %f; b %f\n",min_.L,min_.a,min_.b);
+                printf("max: L %f; a %f; b %f\n",max_.L,max_.a,max_.b);
+            }
+
             return im;
             
         }
@@ -751,7 +755,8 @@ public:
 //            {
 //                printf("32F \n");
 //            }
-            printf("Opencv 1 CH Image\n");
+            if (showDebug)
+                printf("Opencv 1 CH Image\n");
             const Q* m_Ptr = m.ptr<Q>(0);
             image<Q> *im = new image<Q>(width, height);
             memcpy(im->data, m_Ptr, width * height * sizeof(Q));
@@ -781,7 +786,6 @@ public:
     static inline void visualizeImage(image<Q> *im, std::string win_name="Segmentation Result", int wait_key_=0, bool bInpaintDepth=false)
     {
         if (!showImages) {
-            printf("Não vai mostrar imagem, showImages: %s\n", showImages ? "true" : "false");
             return;
         }
 
@@ -824,8 +828,8 @@ public:
                 cv::waitKey(wait_key_);
             }
             
-        }
-        
+        }       
+
         return;
     }
     static inline void dynamicDepthSmoothing(image<uint16_t> *im, image<uint16_t> * smoothedDepth, const float beta = 1500.0f, const float gamma = 18000.0f)
@@ -1546,7 +1550,8 @@ public:
                     
                     if(j==216 && i==259)
                     {
-                        printf("j: %d; i: %d; dp2: %d; dm2: %d; theta: %f\n",j,i,dp2,dm2,theta*180.f/M_PI);
+                        if (showDebug)
+                            printf("j: %d; i: %d; dp2: %d; dm2: %d; theta: %f\n",j,i,dp2,dm2,theta*180.f/M_PI);
                     }
                     
                     if( ((dp2<DTH && dm2<DTH))
@@ -1613,7 +1618,8 @@ public:
         MagOut.convertTo(SaliencyMyCanny,CV_32F,1.0/(maxVal - minVal), -minVal*1.0/(maxVal-minVal));
         
         cv::minMaxIdx(SaliencyMyCanny, &minVal, &maxVal);
-        printf("SaliencyMyCanny Float min: %f; max: %f\n",minVal,maxVal);
+        if (showDebug)
+            printf("SaliencyMyCanny Float min: %f; max: %f\n",minVal,maxVal);
         float* SaliencyMyCannyPtr = SaliencyMyCanny.ptr<float>(0);
         //copy Mat
         for (int i=0; i<RxC; ++i) {
@@ -1642,7 +1648,7 @@ public:
     
     /* Specialization for hsv & depth image in [mm] & saliency if any*/
     //template <class T>
-    image<rgb> *segment_image();
+    void segment_image();
     inline void PostSegmFilter(universe* u)
     {
         //find only the possible objs
@@ -1651,9 +1657,11 @@ public:
         std::vector<std::vector<cv::Point3i> > xyi;
         u->collectSets(xyi,mHeight,mWidth);
         
-        printf("xyi->size() %lu\n",xyi.size());
-        printf("disjoint sets %d\n",u->num_sets());
-        
+        if (showDebug) {
+            printf("xyi->size() %lu\n",xyi.size());
+            printf("disjoint sets %d\n",u->num_sets());
+        }
+
         /* Show Cluster by Cluster */
  /*
          cv::Mat rgb_img = cv::Mat::zeros(mHeight,mWidth,CV_8UC3);
@@ -1721,18 +1729,22 @@ public:
             double eccentricity;
             
             cv::Point3f Centroid3D = compute3DCentroid(xyi[idx_set]);
-            
+            //TODO refactoring
             //if Object is too far to be reached by the robot skip it (Here in camera frame in mm)
             float L2Centroid = std::sqrt(Centroid3D.z*Centroid3D.z+Centroid3D.y*Centroid3D.y+Centroid3D.x*Centroid3D.x);
-            if(L2Centroid>mFarObjZ)
+            if(L2Centroid>mFarObjZ) {
+                printf("continue1: %d l2centroid: %f\n", idx_set, L2Centroid);
                 continue;
+            }
             
             computePCA(xyi[idx_set], rgb_img, eigen_vecs, eigen_val, cntr, angle, eccentricity,false);
             
             //filter
             if(eccentricity>mMax_eccentricity || eigen_val[0]>mMax_L1
-               || eigen_val[1]>mMax_L2)
+               || eigen_val[1]>mMax_L2) {
+                printf("continue2: %d\n", idx_set);
                 continue;
+            }
             
             //filter by Num NaN
             uint cluster_size = xyi[idx_set].size();
@@ -1747,9 +1759,12 @@ public:
             }
             //if >30% of points is NaN...drop the obj
             float NaNratio_ = ((float)NumNan)/((float)cluster_size);
-            printf("NaNratio_: %f\n",NaNratio_);
-            if(NaNratio_ >= 0.3f)
+            if (showDebug)
+                printf("NaNratio_: %f\n",NaNratio_);
+            if(NaNratio_ >= 0.3f) {
+                printf("continue3: %d\n", idx_set);
                 continue;
+            }
             
             //Filter by Value (HSV)
             cv::Mat cvHSV_ = cv::Mat(mInput_img->height(),mInput_img->width(),CV_8UC3,mInput_img->data);
@@ -1766,14 +1781,19 @@ public:
             
             float* Vptr = Val_HistNorm.ptr<float>(0);
             float sum3Bins = Vptr[0] + Vptr[1] + Vptr[2];
-            printf("sum3Bins: %f\n",sum3Bins);
+            if (showDebug)
+                printf("sum3Bins: %f\n",sum3Bins);
             //if 30% of cluster pixels fall within the first 3 bins (0-3*8) == (0-24) Value Intensity, then drop the obj
-            if(sum3Bins>=0.3f)
+            if(sum3Bins>=0.3f) {
+                printf("continue4: %d\n", idx_set);
                 continue;
+            }
   
-            printf("cluster_size: %u\n",cluster_size);
-            printf("NumNan: %u\n",NumNan);
-            
+            if (showDebug) {
+                printf("cluster_size: %u\n",cluster_size);
+                printf("NumNan: %u\n",NumNan);
+            }
+
             //Draw the Objects Clusters
             uchar* imgPtr = rgb_img.ptr<uchar>(0);
             //Draw real RGB of the Segmented Objs
@@ -1842,23 +1862,27 @@ public:
             SegResults segres_(Centroid3D, Centroid3DFake ,cntr, eigen_val[0], eigen_val[1], angle, xyi[idx_set].size(), xyi[idx_set], clusterRGBmat,clusterDepthmat, rect_aabb_);
             vecSegResults.push_back(segres_);
             
-            //Print Info PCA
-            printf("V1: x: %.7f y: %.7f | L: %7f \n",eigen_vecs[0].x,eigen_vecs[0].y, eigen_val[0]);
-            printf("V2: x: %.7f y: %.7f | L: %7f \n",eigen_vecs[1].x,eigen_vecs[1].y, eigen_val[1]);
-            
-            printf("Centroid x: %d , y: %d\n",cntr.x,cntr.y);
-            printf("Centroid3D x: %f , y: %f, z: %f\n",Centroid3D.x,Centroid3D.y,Centroid3D.z);
-            
-            
-            printf("angle: %f\n",angle);
-            printf("eccentricity: %f\n",eccentricity);
-            
-            //imshow("PCA", rgb_img);
-            //cv::waitKey(0);
-            
+            if (showDebug) {
+                //Print Info PCA
+                printf("V1: x: %.7f y: %.7f | L: %7f \n",eigen_vecs[0].x,eigen_vecs[0].y, eigen_val[0]);
+                printf("V2: x: %.7f y: %.7f | L: %7f \n",eigen_vecs[1].x,eigen_vecs[1].y, eigen_val[1]);
+                
+                printf("Centroid x: %d , y: %d\n",cntr.x,cntr.y);
+                printf("Centroid3D x: %f , y: %f, z: %f\n",Centroid3D.x,Centroid3D.y,Centroid3D.z);
+                
+                
+                printf("angle: %f\n",angle);
+                printf("eccentricity: %f\n",eccentricity);
+                
+                //imshow("PCA", rgb_img);
+                //cv::waitKey(0);
+            }            
         }
-        cv::imshow("PCA", rgb_img);
-        cv::imshow("RealColorSeg", RealSegMat);
+
+        if (showImages) {
+            cv::imshow("PCA", rgb_img);
+            cv::imshow("RealColorSeg", RealSegMat);
+        }
         //cv::waitKey(0);
         
             //cv::imwrite("/Users/giorgio/Documents/PCA.png", rgb_img);
@@ -2411,13 +2435,19 @@ public:
     
     static inline void visualizeColorMap(const cv::Mat& oneCHimg, std::string name="W1", int wait_key_=0, bool getgrayscale=false)
     {
+        if (!showImages)
+            return;
+
         //if already 8 bit and we want to show only the gray image
         if(oneCHimg.depth()==CV_8U && getgrayscale)
         {
             double minVal, maxVal;
+
             cv::minMaxLoc(oneCHimg,&minVal,&maxVal);
             cv::imshow(name, oneCHimg);
-            printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
+
+            if (showDebug)
+                printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
             cv::waitKey(wait_key_);
             
         }
@@ -2428,10 +2458,11 @@ public:
             cv::minMaxLoc(oneCHimg,&minVal,&maxVal);
             
             cv::Mat colorMatJ1;
-            cv::applyColorMap(oneCHimg, colorMatJ1, cv::COLORMAP_JET);
-            
+            cv::applyColorMap(oneCHimg, colorMatJ1, cv::COLORMAP_JET);            
             cv::imshow(name, colorMatJ1);
-            printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
+
+            if (showDebug)
+                printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
             cv::waitKey(wait_key_);
         }
         //if other formats and we want to show gray image in ColorMap
@@ -2446,7 +2477,10 @@ public:
             cv::applyColorMap(J1_gray_img, colorMatJ1, cv::COLORMAP_JET);
             //std::string name(winname+std::string(" J1"));
             cv::imshow(name, colorMatJ1);
-            printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
+
+            if (showDebug)
+                printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
+            
             cv::waitKey(wait_key_);
         }
         //if other formats and we want to show only gray image
@@ -2458,11 +2492,11 @@ public:
             cv::minMaxLoc(oneCHimg,&minVal,&maxVal);
             oneCHimg.convertTo(J1_gray_img,CV_8U,255.0/(maxVal - minVal), -minVal*255.0/(maxVal-minVal));
             cv::imshow(name, J1_gray_img);
-            printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
+            
+            if (showDebug)
+                printf("%s: min: %f, max: %f\n",name.c_str(),minVal, maxVal);
             cv::waitKey(wait_key_);
         }
-        
-        
     }
     
     static inline void convertDepth2ColorMap(const cv::Mat& oneCHimg, cv::Mat& dpCM)
