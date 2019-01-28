@@ -1272,7 +1272,7 @@ namespace GraphCanny {
             
             //pick random colors for each component
             rgb *colors = new rgb[mRxC];
-            printf("Número de componentes: %d\n", mRxC);
+            //printf("Número de componentes: %d\n", mRxC);
             for (int i = 0; i < mRxC; i++)
                 colors[i] = random_rgb();
             

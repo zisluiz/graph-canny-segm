@@ -1733,7 +1733,7 @@ public:
             //if Object is too far to be reached by the robot skip it (Here in camera frame in mm)
             float L2Centroid = std::sqrt(Centroid3D.z*Centroid3D.z+Centroid3D.y*Centroid3D.y+Centroid3D.x*Centroid3D.x);
             if(L2Centroid>mFarObjZ) {
-                printf("continue1: %d l2centroid: %f\n", idx_set, L2Centroid);
+                //printf("continue1: %d l2centroid: %f\n", idx_set, L2Centroid);
                 continue;
             }
             
@@ -1742,7 +1742,7 @@ public:
             //filter
             if(eccentricity>mMax_eccentricity || eigen_val[0]>mMax_L1
                || eigen_val[1]>mMax_L2) {
-                printf("continue2: %d\n", idx_set);
+                //printf("continue2: %d\n", idx_set);
                 continue;
             }
             
@@ -1762,7 +1762,7 @@ public:
             if (showDebug)
                 printf("NaNratio_: %f\n",NaNratio_);
             if(NaNratio_ >= 0.3f) {
-                printf("continue3: %d\n", idx_set);
+                //printf("continue3: %d\n", idx_set);
                 continue;
             }
             
@@ -1785,7 +1785,7 @@ public:
                 printf("sum3Bins: %f\n",sum3Bins);
             //if 30% of cluster pixels fall within the first 3 bins (0-3*8) == (0-24) Value Intensity, then drop the obj
             if(sum3Bins>=0.3f) {
-                printf("continue4: %d\n", idx_set);
+                //printf("continue4: %d\n", idx_set);
                 continue;
             }
   
