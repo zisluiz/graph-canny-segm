@@ -1,13 +1,12 @@
 ## Fast Graph-Based Object Segmentation for RGB-D Images
 
-CPU code for paper:
-
 # Original and forked work
 
+CPU code for paper:
 Fast Graph-Based Object Segmentation for RGB-D Images, Giorgio Toscana, Stefano Rosa
 https://arxiv.org/abs/1605.03746
 
-# Contributions
+# My contributions
 
 * Code updated to date frameworks
 * Parameters from config file

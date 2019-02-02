@@ -2,8 +2,8 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "GraphCannySeg.h"
-#include "objectseg.h"
 #include "configprop.h"
+#include "objectseg.h"
 
 class Facade
 {
@@ -51,30 +51,31 @@ class Facade
 
 Facade::Facade(std::string configFilePath)
 {
-    ConfigProperties config = ConfigProperties(configFilePath);
-    fx = std::stod(config.config["fx"]);
-    fy = std::stod(config.config["fy"]);
-    cx = std::stod(config.config["cx"]);
-    cy = std::stod(config.config["cy"]);
-    k = std::stoi(config.config["k"]);
-    kx = std::stoi(config.config["kx"]);
-    ky = std::stoi(config.config["ky"]);
-    ks = std::stoi(config.config["ks"]);
-    kdv = std::stof(config.config["kdv"]);
-    kdc = std::stof(config.config["kdc"]);
-    min_size = std::stof(config.config["min_size"]);
-    sigma = std::stof(config.config["sigma"]);
-    max_ecc = std::stof(config.config["max_ecc"]);
-    max_L1 = std::stof(config.config["max_L1"]);
-    max_L2 = std::stof(config.config["max_L2"]);
-    DTH = std::stoi(config.config["DTH"]);
-    plusD = std::stoi(config.config["plusD"]);
-    point3D = std::stoi(config.config["point3D"]);
-    g_angle = std::stoi(config.config["g_angle"]);
-    l_angle = std::stoi(config.config["l_angle"]);
-    Lcanny = std::stoi(config.config["Lcanny"]);
-    Hcanny = std::stoi(config.config["Hcanny"]);
-    FarObjZ = std::stoi(config.config["FarObjZ"]);   
+    ConfigProperties *config = new ConfigProperties(configFilePath);
+    fx = std::stod(config->config["fx"]);
+    fy = std::stod(config->config["fy"]);
+    cx = std::stod(config->config["cx"]);
+    cy = std::stod(config->config["cy"]);
+    k = std::stoi(config->config["k"]);
+    kx = std::stoi(config->config["kx"]);
+    ky = std::stoi(config->config["ky"]);
+    ks = std::stoi(config->config["ks"]);
+    kdv = std::stof(config->config["kdv"]);
+    kdc = std::stof(config->config["kdc"]);
+    min_size = std::stof(config->config["min_size"]);
+    sigma = std::stof(config->config["sigma"]);
+    max_ecc = std::stof(config->config["max_ecc"]);
+    max_L1 = std::stof(config->config["max_L1"]);
+    max_L2 = std::stof(config->config["max_L2"]);
+    DTH = std::stoi(config->config["DTH"]);
+    plusD = std::stoi(config->config["plusD"]);
+    point3D = std::stoi(config->config["point3D"]);
+    g_angle = std::stoi(config->config["g_angle"]);
+    l_angle = std::stoi(config->config["l_angle"]);
+    Lcanny = std::stoi(config->config["Lcanny"]);
+    Hcanny = std::stoi(config->config["Hcanny"]);
+    FarObjZ = std::stoi(config->config["FarObjZ"]);  
+    delete config; 
 
     k_vec[0] = static_cast<float>(fx);
     k_vec[1] = 0;
