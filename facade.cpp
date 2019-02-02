@@ -2,12 +2,15 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "GraphCannySeg.h"
+#include "objectseg.h"
+#include "configprop.h"
 
 class Facade
 {
     public:
-        Facade();
-        void segmentImage(char* rgbFilePath, char* depthFilePath, bool showDebug, bool showImages, char* jsonBuffer);
+        Facade(std::string configFilePath);
+        ObjectSeg* segmentImage(const char* rgbFilePath, const char* depthFilePath, bool showDebug, bool showImages, char *numObjects);
+        void cleanupObjects(ObjectSeg* objectToClean, char *numObjects);
     private:
     int k=38; //50;
     int kx=2000;
@@ -30,80 +33,126 @@ class Facade
     int FarObjZ = 28000; //875;//1800; //[mm]   
 
     //ACCV
-    double fx=572.41140;
-    double fy=573.57043;
+    double fx = 572.41140;
+    double fy = 573.57043;
     double cx = 325.26110;
     double cy = 242.04899;    
-    float k_vec[9] = {static_cast<float>(fx), 0, static_cast<float>(cx), 0, static_cast<float>(fy), static_cast<float>(cy), 0.f,0.f,1.f}; 
+    
+    float k_vec[9];
+    float kfloat;
+    float kxfloat;
+    float kyfloat;
+    float ksfloat;
+    float gafloat;
+    float lafloat;
+    float lcannyf;
+    float hcannyf;
 };
 
-Facade::Facade()
+Facade::Facade(std::string configFilePath)
 {
+    ConfigProperties config = ConfigProperties(configFilePath);
+    fx = std::stod(config.config["fx"]);
+    fy = std::stod(config.config["fy"]);
+    cx = std::stod(config.config["cx"]);
+    cy = std::stod(config.config["cy"]);
+    k = std::stoi(config.config["k"]);
+    kx = std::stoi(config.config["kx"]);
+    ky = std::stoi(config.config["ky"]);
+    ks = std::stoi(config.config["ks"]);
+    kdv = std::stof(config.config["kdv"]);
+    kdc = std::stof(config.config["kdc"]);
+    min_size = std::stof(config.config["min_size"]);
+    sigma = std::stof(config.config["sigma"]);
+    max_ecc = std::stof(config.config["max_ecc"]);
+    max_L1 = std::stof(config.config["max_L1"]);
+    max_L2 = std::stof(config.config["max_L2"]);
+    DTH = std::stoi(config.config["DTH"]);
+    plusD = std::stoi(config.config["plusD"]);
+    point3D = std::stoi(config.config["point3D"]);
+    g_angle = std::stoi(config.config["g_angle"]);
+    l_angle = std::stoi(config.config["l_angle"]);
+    Lcanny = std::stoi(config.config["Lcanny"]);
+    Hcanny = std::stoi(config.config["Hcanny"]);
+    FarObjZ = std::stoi(config.config["FarObjZ"]);   
+
+    k_vec[0] = static_cast<float>(fx);
+    k_vec[1] = 0;
+    k_vec[2] = static_cast<float>(cx);
+    k_vec[3] = 0;
+    k_vec[4] = static_cast<float>(fy);
+    k_vec[5] = static_cast<float>(cy);
+    k_vec[6] = 0.f;
+    k_vec[7] = 0.f;
+    k_vec[8] = 1.f;
+
+    kfloat = (float)k/10000.f;
+    kxfloat = (float)kx/1000.f;
+    kyfloat = (float)ky/1000.f;
+    ksfloat = (float)ks/1000.f;
+    gafloat = ((float)g_angle)*deg2rad;
+    lafloat = ((float)l_angle)*deg2rad;
+    lcannyf = (float)Lcanny/1000.f;
+    hcannyf = (float)Hcanny/1000.f;    
 }
 
-void Facade::segmentImage(char* rgbFilePath, char* depthFilePath, bool showDebug, bool showImages, char* jsonBuffer) {
-
+ObjectSeg* Facade::segmentImage(const char* rgbFilePath, const char* depthFilePath, bool showDebug, bool showImages, char *numObjects) {
     cv::Mat kinect_rgb_img = cv::imread(rgbFilePath);//,cv::IMREAD_UNCHANGED);
     cv::Mat kinect_depth_img_mm = cv::imread(depthFilePath,cv::IMREAD_UNCHANGED);// in mm
-
-    float kfloat = (float)k/10000.f;
-    float kxfloat = (float)kx/1000.f;
-    float kyfloat = (float)ky/1000.f;
-    float ksfloat = (float)ks/1000.f;
-    float gafloat = ((float)g_angle)*deg2rad;
-    float lafloat = ((float)l_angle)*deg2rad;
-    float lcannyf = (float)Lcanny/1000.f;
-    float hcannyf = (float)Hcanny/1000.f;
-    //GraphCanny::GraphCannySeg<GraphCanny::hsv> gcs(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);
 
     GraphCanny::GraphCannySeg<GraphCanny::hsv>* gcs = new GraphCanny::GraphCannySeg<GraphCanny::hsv>(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);    
     gcs->showImages = showImages;    
     gcs->showDebug = showDebug;
     gcs->run();
 
-    std::vector<GraphCanny::SegResults> vecSegResult = gcs->vecSegResults;    
+    std::vector<GraphCanny::SegResults> vecSegResult = gcs->vecSegResults;
+    int maxLength = vecSegResult.size();
+    strcpy(numObjects, std::to_string(maxLength).c_str());
 
-
-    strcpy(jsonBuffer, "[");
-    std::size_t maxLength = 2;//vecSegResult.size();
+    ObjectSeg* results = new ObjectSeg[maxLength];
 
     for(std::size_t objs=0; objs < maxLength; ++objs) {
         GraphCanny::SegResults obj = vecSegResult[objs];
+        int numPoints = obj.pxs.size();
 
-        strcat(jsonBuffer, "{");
-        strcat(jsonBuffer, ("\"id\": "+std::to_string((objs+1))).c_str());
-        strcat(jsonBuffer, ",\"points\":[");
+        results[objs] = ObjectSeg(objs+1, numPoints, new PointSeg[numPoints]);
 
-        for(std::size_t pixel=0; pixel < obj.pxs.size(); ++pixel) {
+        for(std::size_t pixel=0; pixel < numPoints; ++pixel) {
             cv::Point3i point = obj.pxs[pixel]; 
-            strcat(jsonBuffer, "{");
-            strcat(jsonBuffer, ("\"x\":" + std::to_string(point.x)).c_str());
-            strcat(jsonBuffer, (",\"y\":" + std::to_string(point.y)).c_str());
-            strcat(jsonBuffer, (",\"z\":" + std::to_string(point.z)).c_str());
-            strcat(jsonBuffer, "}");
-
-            if (pixel < obj.pxs.size()-1)
-                strcat(jsonBuffer, ",");
+            results[objs].points[pixel].x = point.x;
+            results[objs].points[pixel].y = point.y;
+            results[objs].points[pixel].z = point.z;
         }        
-
-        strcat(jsonBuffer, "]}");
-
-        if (objs < maxLength-1)
-            strcat(jsonBuffer, ",");
     }
-
-    strcat(jsonBuffer, "]");
-
-    //printf("Preparing for print json format\n");
 
     if (showDebug)
-        printf("Json results: %s\n", jsonBuffer);
+        printf("Resulting a array of %d\n", maxLength);
+
+    return results;
 }
 
+void Facade::cleanupObjects(ObjectSeg* objectToClean, char *numObjects) {
+    if (objectToClean) {
+        int numObjts = atoi(numObjects);
+
+        for(std::size_t objs=0; objs < numObjts; ++objs) {
+            if (objectToClean[objs].points) {
+                delete[] objectToClean[objs].points;
+            }
+        }
+
+        delete[] objectToClean;
+    }      
+} 
+
 extern "C"
-{
-    Facade* Facade_new() {return new Facade();}
-    void Facade_segmentImage(Facade* facade, char* rgbFilePath, char* depthFilePath, bool showDebug, bool showImages, char* jsonBuffer) {
-        facade->segmentImage(rgbFilePath, depthFilePath, showDebug, showImages, jsonBuffer);
+{   
+    Facade* Facade_new(const char* configFilePath) {return new Facade(std::string(configFilePath));}
+    ObjectSeg* Facade_segmentImage(Facade* facade, const char* rgbFilePath, const char* depthFilePath, bool showDebug, bool showImages, char *numObjects) {
+        return facade->segmentImage(rgbFilePath, depthFilePath, showDebug, showImages, numObjects);
     }
+
+    void Facade_cleanupObjects(Facade* facade, ObjectSeg* objectToClean, char *numObjects) {
+        facade->cleanupObjects(objectToClean, numObjects);
+    }      
 }

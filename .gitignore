@@ -1,3 +1,4 @@
 main
 graph-canny-segm
 graph-canny-segm.so
+graph-canny-segm.d.so

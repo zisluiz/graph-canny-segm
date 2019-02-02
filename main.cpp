@@ -17,14 +17,14 @@
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include "opencv2/highgui/highgui.hpp"
 
-
+#include "configprop.h"
 #include "GraphCannySeg.h"
 
 // Camera parameters for ACCV dataset
-#define FX 572.41140
-#define FY 573.57043
-#define CX 325.26110
-#define CY 242.04899
+//#define FX 572.41140
+//#define FY 573.57043
+//#define CX 325.26110
+//#define CY 242.04899
 
 // Camera parameters for Rutgers dataset
 //#define FX 575.8157348632812
@@ -42,29 +42,27 @@
 #define tomm_ 1000.0f
 #define tocast_ 0.5f
 
+ConfigProperties *config;
+
 //ACCV
-double fx=572.41140;
-double fy=573.57043;
-double cx = 325.26110;
-double cy = 242.04899;
-
-
-
-float k_vec[9] = {static_cast<float>(fx), 0, static_cast<float>(cx), 0, static_cast<float>(fy), static_cast<float>(cy), 0.f,0.f,1.f};
+double fx = 0;
+double fy = 0;
+double cx = 0;
+double cy = 0;
 
 /*Segmentation Params*/
 //params challenge
-int k=38; //50;
-int kx=2000;
-int ky=30;
-int ks=50;
-float kdv=4.5f;
-float kdc=0.1f;
-float min_size=500.0f;
-float sigma=0.8f;
-float max_ecc = 0.978f;
-float max_L1 = 3800.0f;
-float max_L2 = 950.0f;
+int k=0; //50;
+int kx=0;
+int ky=0;
+int ks=0;
+float kdv=0;
+float kdc=0;
+float min_size=0;
+float sigma=0;
+float max_ecc = 0;
+float max_L1 = 0;
+float max_L2 = 0;
 
 //params rutgers
 //int k=50000;
@@ -80,14 +78,14 @@ float max_L2 = 950.0f;
 //float max_L2 = 950.0f;
 
 
-int DTH = 30; //[mm]
-int plusD = 30; //7; //for depth boundary
-int point3D = 5; //10//for contact boundary
-int g_angle = 154; //140;//148;//2.f/3.f*M_PI;
-int l_angle = 56; //M_PI/3.f;
-int Lcanny = 50;
-int Hcanny = 75;
-int FarObjZ = 28000; //875;//1800; //[mm]
+int DTH = 0; //[mm]
+int plusD = 0; //7; //for depth boundary
+int point3D = 0; //10//for contact boundary
+int g_angle = 0; //140;//148;//2.f/3.f*M_PI;
+int l_angle = 0; //M_PI/3.f;
+int Lcanny = 0;
+int Hcanny = 0;
+int FarObjZ = 0; //875;//1800; //[mm]
 
 std::string trackBarsWin = "Trackbars";
 //Segmentation Results
@@ -143,6 +141,7 @@ void on_trackbar( int, void* )
     if(gcs)
       delete gcs;
 
+    float k_vec[9] = {static_cast<float>(fx), 0, static_cast<float>(cx), 0, static_cast<float>(fy), static_cast<float>(cy), 0.f,0.f,1.f};
     float kfloat = (float)k/10000.f;
     float kxfloat = (float)kx/1000.f;
     float kyfloat = (float)ky/1000.f;
@@ -193,6 +192,33 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
 {
     showDebug = _showDebug == "true";
     showImages = _showImages == "true";
+
+    config = new ConfigProperties(std::string("config.properties"));
+    fx = std::stod(config->config["fx"]);
+    fy = std::stod(config->config["fy"]);
+    cx = std::stod(config->config["cx"]);
+    cy = std::stod(config->config["cy"]);
+    k = std::stoi(config->config["k"]);
+    kx = std::stoi(config->config["kx"]);
+    ky = std::stoi(config->config["ky"]);
+    ks = std::stoi(config->config["ks"]);
+    kdv = std::stof(config->config["kdv"]);
+    kdc = std::stof(config->config["kdc"]);
+    min_size = std::stof(config->config["min_size"]);
+    sigma = std::stof(config->config["sigma"]);
+    max_ecc = std::stof(config->config["max_ecc"]);
+    max_L1 = std::stof(config->config["max_L1"]);
+    max_L2 = std::stof(config->config["max_L2"]);
+    DTH = std::stoi(config->config["DTH"]);
+    plusD = std::stoi(config->config["plusD"]);
+    point3D = std::stoi(config->config["point3D"]);
+    g_angle = std::stoi(config->config["g_angle"]);
+    l_angle = std::stoi(config->config["l_angle"]);
+    Lcanny = std::stoi(config->config["Lcanny"]);
+    Hcanny = std::stoi(config->config["Hcanny"]);
+    FarObjZ = std::stoi(config->config["FarObjZ"]);
+
+    delete config;
 
     /* Load the RGB and DEPTH */
 
