@@ -158,7 +158,10 @@ void on_trackbar( int, void* )
     gcs->run();
 
     vecSegResult = gcs->vecSegResults;
-    
+
+    if (showDebug)
+        printf("Número de objetos: %d\n", vecSegResult.size());
+        
     if (showImages) {
         //text.zeros(480, 640,CV_8UC1);
         cv::Mat text = cv::Mat::zeros(230, 640,CV_8UC1);
@@ -189,9 +192,12 @@ void on_trackbar( int, void* )
 }
 
 void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_file_path, std::string _showDebug, std::string _showImages)
-{
-    showDebug = _showDebug == "true";
-    showImages = _showImages == "true";
+{   
+    showDebug = "true" == _showDebug;
+    showImages = "true" == _showImages;
+
+    if (showDebug)
+        cout << "Initializating";
 
     config = new ConfigProperties(std::string("config.properties"));
     fx = std::stod(config->config["fx"]);
@@ -236,28 +242,28 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
     //cv::imshow("kinect_rgb_img",kinect_rgb_img);
     //cv::imshow("kinect_depth_img_mm",kinect_depth_img_mm);
 
-    if (showDebug) {
+    /*if (showDebug) {
         for(int i=250;i<350;i++)
                 for(int j=200;j<250;j++)
                     printf("%d ",kinect_depth_img_mm.at<uint16_t>(j,i));
-    }
+    }*/
  
     if (showImages) {
         /*Create the TrackBars for Segmentation Params*/
         cv::namedWindow(trackBarsWin,0);
 
-        cv::createTrackbar("k", trackBarsWin, &k, 1000,on_trackbar);
-        cv::createTrackbar("kx", trackBarsWin, &kx, 10000,on_trackbar);
-        cv::createTrackbar("ky", trackBarsWin, &ky, 1000,on_trackbar);
-        cv::createTrackbar("ks", trackBarsWin, &ks, 1000,on_trackbar);
-        cv::createTrackbar("DTH", trackBarsWin, &DTH, 100,on_trackbar);
-        cv::createTrackbar("plusD", trackBarsWin, &plusD, 100,on_trackbar);
-        cv::createTrackbar("Point3D", trackBarsWin, &point3D, 100,on_trackbar);
-        cv::createTrackbar("G Angle", trackBarsWin, &g_angle, 180,on_trackbar);
-        cv::createTrackbar("L Angle", trackBarsWin, &l_angle, 180,on_trackbar);
-        cv::createTrackbar("H Canny th", trackBarsWin, &Hcanny, 100,on_trackbar);
-        cv::createTrackbar("L Canny th", trackBarsWin, &Lcanny, 100,on_trackbar);
-        cv::createTrackbar("FarObjZ", trackBarsWin, &FarObjZ, 40000,on_trackbar);
+        cv::createTrackbar("k", trackBarsWin, &k, 3000,on_trackbar);
+        cv::createTrackbar("kx", trackBarsWin, &kx, 3000,on_trackbar);
+        cv::createTrackbar("ky", trackBarsWin, &ky, 3000,on_trackbar);
+        cv::createTrackbar("ks", trackBarsWin, &ks, 3000,on_trackbar);
+        cv::createTrackbar("DTH", trackBarsWin, &DTH, 500,on_trackbar);
+        cv::createTrackbar("plusD", trackBarsWin, &plusD, 500,on_trackbar);
+        cv::createTrackbar("Point3D", trackBarsWin, &point3D, 500,on_trackbar);
+        cv::createTrackbar("G Angle", trackBarsWin, &g_angle, 360,on_trackbar);
+        cv::createTrackbar("L Angle", trackBarsWin, &l_angle, 360,on_trackbar);
+        cv::createTrackbar("H Canny th", trackBarsWin, &Hcanny, 1000,on_trackbar);
+        cv::createTrackbar("L Canny th", trackBarsWin, &Lcanny, 1000,on_trackbar);
+        cv::createTrackbar("FarObjZ", trackBarsWin, &FarObjZ, 80000,on_trackbar);
     }
 
     on_trackbar( 0, 0 );
@@ -301,9 +307,7 @@ inline void printVector(const float* w, int size)
 int main( int argc, char *argv[] )
 {
     if (argc != 5) {
-
-        printf("usage: %s rgb_file_path depth_file_path\n",argv[0]);
-
+        printf("usage: %s rgb_file_path depth_file_path showDebug showImages\n",argv[0]);
         return -1;
     }
 
