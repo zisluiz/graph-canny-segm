@@ -619,6 +619,7 @@ class GraphCannySeg {
 public:
     static bool showImages;
     static bool showDebug;   
+    static std::string writeImageSeg;
 
     float mSigma;
     float mK;//range da 0.003 a 0.001 x Shampoo //0.0031

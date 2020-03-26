@@ -97,6 +97,7 @@ cv::Mat kinect_depth_img_mm;
 
 bool showDebug = false;
 bool showImages = false;
+std::string writeImageSeg;
 
 // for loading ACCV dataset
 cv::Mat loadDepth( std::string a_name )
@@ -155,6 +156,7 @@ void on_trackbar( int, void* )
     gcs = new GraphCanny::GraphCannySeg<GraphCanny::hsv>(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);    
     gcs->showImages = showImages;    
     gcs->showDebug = showDebug;
+    gcs->writeImageSeg = writeImageSeg;
     gcs->run();
 
     vecSegResult = gcs->vecSegResults;
@@ -223,7 +225,7 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
     Lcanny = std::stoi(config->config["Lcanny"]);
     Hcanny = std::stoi(config->config["Hcanny"]);
     FarObjZ = std::stoi(config->config["FarObjZ"]);
-
+    writeImageSeg = config->config["write_image_seg"]; 
     delete config;
 
     /* Load the RGB and DEPTH */
@@ -252,7 +254,7 @@ void initTrackbarsSegmentation(std::string rgb_file_path,  std::string depth_fil
         /*Create the TrackBars for Segmentation Params*/
         cv::namedWindow(trackBarsWin,0);
 
-        cv::createTrackbar("k", trackBarsWin, &k, 3000,on_trackbar);
+        cv::createTrackbar("k", trackBarsWin, &k, 800,on_trackbar);
         cv::createTrackbar("kx", trackBarsWin, &kx, 3000,on_trackbar);
         cv::createTrackbar("ky", trackBarsWin, &ky, 3000,on_trackbar);
         cv::createTrackbar("ks", trackBarsWin, &ks, 3000,on_trackbar);

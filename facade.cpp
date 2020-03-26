@@ -23,6 +23,7 @@ class Facade
     private:
         bool showDebug;
         bool showImages;
+        std::string writeImageSeg;
         int k=38; //50;
         int kx=2000;
         int ky=30;
@@ -88,6 +89,7 @@ Facade::Facade(std::string configFilePath)
     FarObjZ = std::stoi(config->config["FarObjZ"]);  
     showDebug = config->config["show_debug"] == "true"; 
     showImages = config->config["show_image"] == "true"; 
+    writeImageSeg = config->config["write_image_seg"];
     delete config; 
 
     k_vec[0] = static_cast<float>(fx);
@@ -114,6 +116,7 @@ boost::python::list Facade::segmentImage(cv::Mat kinect_rgb_img, cv::Mat kinect_
     GraphCanny::GraphCannySeg<GraphCanny::hsv>* gcs = new GraphCanny::GraphCannySeg<GraphCanny::hsv>(kinect_rgb_img, kinect_depth_img_mm, sigma, kfloat, min_size, kxfloat, kyfloat, ksfloat,k_vec,lcannyf,hcannyf,kdv, kdc,max_ecc,max_L1,max_L2,(uint16_t)DTH,(uint16_t)plusD,(uint16_t)point3D,gafloat,lafloat,(float)FarObjZ);    
     gcs->showImages = showImages;    
     gcs->showDebug = showDebug;
+    gcs->writeImageSeg = writeImageSeg;
     gcs->run();
 
     std::vector<GraphCanny::SegResults> vecSegResult = gcs->vecSegResults;

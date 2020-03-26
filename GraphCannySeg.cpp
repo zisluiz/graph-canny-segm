@@ -379,8 +379,11 @@ namespace GraphCanny {
     template <class T>
     bool GraphCannySeg<T>::showImages = false;
     template <class T>
-    bool GraphCannySeg<T>::showDebug = false;     
-    
+    bool GraphCannySeg<T>::showDebug = false; 
+    template <class T>
+    std::string GraphCannySeg<T>::writeImageSeg; 
+
+
     //GRAPH SEG
     template <class T>
     GraphCannySeg<T>::GraphCannySeg(){}
@@ -1302,7 +1305,15 @@ namespace GraphCanny {
              cv::imshow("printSet2", gray);
              */
             PostSegmFilter(u);
-            
+
+            cout << "Write image seg: " << writeImageSeg << "\n";
+
+            if (writeImageSeg.size() > 0) {
+                cout << "Writing segmented image " << "\n";
+                cv::Mat imageSegmentated = cv::Mat(output->height(),output->width(),CV_8UC3,output->data);
+                cv::imwrite(writeImageSeg, imageSegmentated);
+                imageSegmentated.release();
+            }
             visualizeImage(output,"Seg Res",5);        
             
             delete [] colors;
