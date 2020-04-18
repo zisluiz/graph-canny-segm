@@ -1,27 +1,28 @@
-## Fast Graph-Based Object Segmentation for RGB-D Images
+# Fast Graph-Based Object Segmentation for RGB-D Images
 
-# Original and forked work
+## Original and forked work
 
 CPU code for paper:
 Fast Graph-Based Object Segmentation for RGB-D Images, Giorgio Toscana, Stefano Rosa
 https://arxiv.org/abs/1605.03746
 
-# My contributions
+## My contributions
 
 * Code updated to date frameworks
 * Parameters from config file
 * Optional print logs and image show by showDebug and showImages arguments
-* Python support with ctypes
+* Python support with ctypes, generating a .so library callable from Python. Example call in https://github.com/zisluiz/obeach.
+* Added Dockerfile that contains a system requirements to build and run this code
 
-# Dependencies:
+## Dependencies:
 sudo apt-get install libopencv-dev libboost-system-dev
 
-# Compile: 
+## Compile: 
 
 For library usage: make 
 For tests: make debug
 
-# Tests
+## Tests
 
 Run: ./graph_canny_segm.d.so rgb_file_name depth_file_name showDebug showImages
 
